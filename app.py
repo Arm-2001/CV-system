@@ -2,13 +2,10 @@ from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import PyPDF2
 import docx
-import nltk
-import spacy
 import re
 import os
 import tempfile
 from werkzeug.utils import secure_filename
-import textstat
 from collections import Counter
 import json
 
@@ -30,20 +27,8 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Initialize NLTK and spaCy
-try:
-    import nltk
-    nltk.download('punkt', quiet=True)
-    nltk.download('stopwords', quiet=True)
-    nltk.download('averaged_perceptron_tagger', quiet=True)
-except:
-    pass
-
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    # If spacy model is not available, we'll handle this in the analyzer
-    nlp = None
+# Minimal initialization - no external dependencies
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 class CVAnalyzer:
     def __init__(self):
