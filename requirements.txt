@@ -2,9 +2,5 @@ Flask==2.3.3
 Flask-CORS==4.0.0
 PyPDF2==3.0.1
 python-docx==0.8.11
-nltk==3.8.1
-spacy==3.7.2
-textstat==0.7.3
-Werkzeug==2.3.7
 gunicorn==21.2.0
-en-core-web-sm @ https://github.com/explosion/spacy-models/releases/download/en_core_web_sm-3.7.1/en_core_web_sm-3.7.1-py3-none-any.whl
+Werkzeug==2.3.7
