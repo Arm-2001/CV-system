@@ -1,10 +1,9 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import PyPDF2
 import docx
 import re
 import os
-import tempfile
 from werkzeug.utils import secure_filename
 from collections import Counter
 import json
@@ -26,9 +25,6 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Minimal initialization - no external dependencies
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 class CVAnalyzer:
     def __init__(self):
@@ -588,7 +584,31 @@ analyzer = CVAnalyzer()
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return jsonify({
+        'service': 'CV Analysis API',
+        'status': 'running',
+        'version': '1.0.0',
+        'endpoints': {
+            'analyze': {
+                'method': 'POST',
+                'url': '/analyze',
+                'description': 'Upload CV file for comprehensive analysis',
+                'parameters': 'file (form-data)',
+                'supported_formats': ['PDF', 'DOCX', 'TXT']
+            },
+            'health': {
+                'method': 'GET', 
+                'url': '/health',
+                'description': 'API health check'
+            }
+        },
+        'usage_example': {
+            'method': 'POST',
+            'url': 'https://your-domain.onrender.com/analyze',
+            'body': 'form-data with key "file" containing CV file',
+            'response': 'JSON with comprehensive CV analysis'
+        }
+    })
 
 @app.route('/analyze', methods=['POST'])
 def analyze_cv():
