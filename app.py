@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 from collections import Counter
 import json
 from datetime import datetime, timedelta
-from textstat import flesch_reading_ease, automated_readability_index
 
 app = Flask(__name__)
 CORS(app)
@@ -337,13 +336,24 @@ class EnhancedCVAnalyzer:
         sentences = re.split(r'[.!?]+', text)
         sentences = [s.strip() for s in sentences if s.strip()]
         
-        # Calculate readability scores
-        try:
-            flesch_score = flesch_reading_ease(text)
-            ari_score = automated_readability_index(text)
-        except:
+        # Calculate simple readability scores
+        words = text.split()
+        total_words = len(words)
+        total_sentences = len(sentences)
+        
+        # Simple flesch reading ease approximation
+        if total_sentences > 0 and total_words > 0:
+            avg_sentence_length = total_words / total_sentences
+            # Count syllables (simple approximation)
+            syllables = sum(self.count_syllables(word) for word in words)
+            avg_syllables_per_word = syllables / total_words if total_words > 0 else 0
+            
+            # Simplified Flesch formula
+            flesch_score = 206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)
+            flesch_score = max(0, min(100, flesch_score))  # Clamp between 0-100
+        else:
             flesch_score = 50  # Default neutral score
-            ari_score = 10
+            avg_sentence_length = 0
         
         # Basic grammar checks
         grammar_issues = []
@@ -355,17 +365,34 @@ class EnhancedCVAnalyzer:
         if len(re.findall(r'[.!?]', text)) < len(sentences) * 0.8:
             grammar_issues.append("Missing punctuation in some sentences")
         
-        # Check sentence length
-        avg_sentence_length = sum(len(s.split()) for s in sentences) / len(sentences) if sentences else 0
-        
         return {
             'flesch_reading_ease': round(flesch_score, 1),
             'readability_level': self.get_readability_level(flesch_score),
-            'ari_score': round(ari_score, 1),
             'avg_sentence_length': round(avg_sentence_length, 1),
             'total_sentences': len(sentences),
             'grammar_suggestions': grammar_issues
         }
+    
+    def count_syllables(self, word):
+        """Simple syllable counting approximation"""
+        word = word.lower()
+        vowels = 'aeiouy'
+        syllable_count = 0
+        prev_was_vowel = False
+        
+        for char in word:
+            if char in vowels:
+                if not prev_was_vowel:
+                    syllable_count += 1
+                prev_was_vowel = True
+            else:
+                prev_was_vowel = False
+        
+        # Handle silent 'e'
+        if word.endswith('e') and syllable_count > 1:
+            syllable_count -= 1
+        
+        return max(1, syllable_count)  # Every word has at least 1 syllable
         
     def get_readability_level(self, flesch_score):
         """Convert Flesch score to readability level"""
