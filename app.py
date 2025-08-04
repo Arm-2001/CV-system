@@ -8,7 +8,6 @@ from werkzeug.utils import secure_filename
 from collections import Counter
 import json
 from datetime import datetime, timedelta
-import spacy
 from textstat import flesch_reading_ease, automated_readability_index
 
 app = Flask(__name__)
